@@ -340,13 +340,14 @@ def install_arch():
     print("Python script created. Now, I will create a bash script that will run the container on boot.")
     with open(f"/mnt/home/{username}/jellyfin_startup.sh", "w") as startup_script_file:
         if media_drives.len() == 0:
-            startup_script = startup_script.replace("LINEREPLACEHOLDER", "")
+            startup_script = startup_script.replace("\nLINEREPLACEHOLDER", "")
         else:
             line_replacement = ""
             i = 1
             for _ in media_drives:
-                line_replacement += f"--mount type=bind,source=/jellyfin_media/media{i},target=/media{i} \\\n"
+                line_replacement += f"\n--mount type=bind,source=/jellyfin_media/media{i},target=/media{i} \\"
                 i += 1
+            startup_script = startup_script.replace("\nLINEREPLACEHOLDER", line_replacement)
         startup_script_file.write(startup_script)
         startup_script_file.close()
 
