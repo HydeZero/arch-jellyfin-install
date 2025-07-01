@@ -214,6 +214,12 @@ def install_arch():
         print("    BOOT: ", end="")
         _ = os.system(f"mount --mkdir {disk_to_install}1 /mnt/boot")
         print("OK")
+    print("Mounting media drives...")
+    i = 1
+    for drive in media_drives:
+        print(f"    {drive.upper()}: ", end="")
+        _ = os.system(f"mount --mkdir {drive}1 /mnt/jellyfin_media/media{i}")
+        print(f"OK (mounted at /jellyfin_media/media{i})")
     print("Installing base system... this may take a while, so please be patient.")
     install_process = subprocess.run(["pacstrap", "-K", "/mnt", "base", "linux", "base-devel", "linux-firmware", "networkmanager", "wpa_supplicant"], capture_output=True)
 
