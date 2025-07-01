@@ -36,7 +36,6 @@ startup_script = """#!/bin/bash
 # Startup script for Jellyfin container
 docker run -d \\
  --name jellyfin \\
- --user uid:gid \\
  --net=host \\
  --volume jellyfin-config:/config \\
  --volume jellyfin-cache:/cache \\
@@ -57,7 +56,7 @@ print("Container pulled. Deleting this script...")
 with open("~/.bashrc", "r") as bashrc:
     brc_data = bashrc.read()
     bashrc.close()
-brc_data = brc_data.replace("python ~/.jellyfin_first_startup.py", "")
+brc_data = brc_data.replace("python ~/jellyfin_first_startup.py", "")
 with open("~/.bashrc", "w") as bashrc:
     bashrc.write(brc_data)
     bashrc.close()
@@ -340,7 +339,7 @@ def install_arch():
         first_startup_file.write(python_first_startup)
         first_startup_file.close()
     with open(f"/mnt/home/{username}/.bashrc", "a") as bashrc_file: # make sure it runs at login
-        bashrc_file.write("\npython ~/.jellyfin_first_startup.py")
+        bashrc_file.write("\npython ~/jellyfin_first_startup.py\n")
         bashrc_file.close()
     
     print("Python script created. Now, I will create a bash script that will run the container on boot.")
@@ -375,7 +374,6 @@ def install_arch():
     if is_meshnet:
         print("INSTALLING NORDVPN MESHNET\n")
         print("Installing yay...")
-        subprocess.call(["arch-chroot", "/mnt", "git", "clone", "https://aur.archlinux.org/yay.git"])
         _ = os.system("arch-chroot /mnt pacman -S --needed git base-devel --noconfirm && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si")
         print("yay installed.")
         print("Installing NordVPN MeshNet...")
