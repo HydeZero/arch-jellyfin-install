@@ -34,14 +34,14 @@ username = ""
 
 startup_script = """#!/bin/bash
 # Startup script for Jellyfin container
-docker run -d \
- --name jellyfin \
- --user uid:gid \
- --net=host \
- --volume jellyfin-config:/config \
- --volume jellyfin-cache:/cache \
-LINEREPLACEHOLDER \
- --restart=unless-stopped \
+docker run -d \\
+ --name jellyfin \\
+ --user uid:gid \\
+ --net=host \\
+ --volume jellyfin-config:/config \\
+ --volume jellyfin-cache:/cache \\
+LINEREPLACEHOLDER \\
+ --restart=unless-stopped \\
  jellyfin/jellyfin"""
 
 python_first_startup = """import os
@@ -341,17 +341,21 @@ def install_arch():
     with open(f"/mnt/home/{username}/jellyfin_first_startup.py", "w") as first_startup_file:
         first_startup_file.write(python_first_startup)
         first_startup_file.close()
+    with open(f"/mnt/home/{username}/.bashrc", "a") as bashrc_file: # make sure it runs at login
+        bashrc_file.write("\npython ~/.jellyfin_first_startup.py")
+        bashrc_file.close()
+    
     print("Python script created. Now, I will create a bash script that will run the container on boot.")
     with open(f"/mnt/home/{username}/jellyfin_startup.sh", "w") as startup_script_file:
         if len(media_drives) == 0:
-            startup_script = startup_script.replace("\nLINEREPLACEHOLDER", "")
+            startup_script = startup_script.replace("\nLINEREPLACEHOLDER \\", "")
         else:
             line_replacement = ""
             i = 1
             for _ in media_drives:
                 line_replacement += f"\n--mount type=bind,source=/jellyfin_media/media{i},target=/media{i} \\"
                 i += 1
-            startup_script = startup_script.replace("\nLINEREPLACEHOLDER", line_replacement)
+            startup_script = startup_script.replace("\nLINEREPLACEHOLDER \\", line_replacement)
         startup_script_file.write(startup_script)
         startup_script_file.close()
 
