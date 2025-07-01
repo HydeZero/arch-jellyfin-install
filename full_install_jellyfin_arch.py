@@ -40,9 +40,29 @@ docker run -d \
  --net=host \
  --volume jellyfin-config:/config \
  --volume jellyfin-cache:/cache \
- --mount type=bind,source=/path/to/media,target=/media \
+LINEREPLACEHOLDER \
  --restart=unless-stopped \
  jellyfin/jellyfin"""
+
+python_first_startup = """import os
+import subprocess
+
+brc_data = ""
+
+print("Pulling container...")
+subprocess.call(["docker", "pull", "jellyfin/jellyfin"])
+subprocess.call(["docker", "volume", "create", "jellyfin-config"])
+subprocess.call(["docker", "volume", "create", "jellyfin-cache"])
+print("Container pulled. Deleting this script...")
+with open("~/.bashrc", "r") as bashrc:
+    brc_data = bashrc.read()
+    bashrc.close()
+brc_data = brc_data.replace("python ~/.jellyfin_first_startup.py", "")
+with open("~/.bashrc", "w") as bashrc:
+    bashrc.write(brc_data)
+    bashrc.close()
+os.remove("~/jellyfin_first_startup.py")
+"""
 
 def questions():
     global is_efi
@@ -312,16 +332,24 @@ def install_arch():
     subprocess.call(["arch-chroot", "/mnt", "systemctl", "enable", "--now", "docker"])
     subprocess.call(["arch-chroot", "/mnt", "systemctl", "start", "docker"])
     print("DOCKER SERVICE ENABLED")
-    print("Installing Jellyfin...")
-    subprocess.call(["arch-chroot", "/mnt", "docker", "pull", "jellyfin/jellyfin"])
-    subprocess.call(["arch-chroot", "/mnt", "docker", "volume", "create", "jellyfin-config"])
-    subprocess.call(["arch-chroot", "/mnt", "docker", "volume", "create", "jellyfin-cache"])
-    print("Jellyfin pulled.")
     print("Since this entire script is dedicated to installing Arch Linux and Jellyfin, I will add a startup script to run the jellyfin container on boot.")
-
+    print("Jellyfin won't be pulled until the first boot, so I will create a Python script that will pull the container and create the volumes.")
+    with open(f"/mnt/home/{username}/jellyfin_first_startup.py", "w") as first_startup_file:
+        first_startup_file.write(python_first_startup)
+        first_startup_file.close()
+    print("Python script created. Now, I will create a bash script that will run the container on boot.")
     with open(f"/mnt/home/{username}/jellyfin_startup.sh", "w") as startup_script_file:
+        if media_drives.len() == 0:
+            startup_script = startup_script.replace("LINEREPLACEHOLDER", "")
+        else:
+            line_replacement = ""
+            i = 1
+            for _ in media_drives:
+                line_replacement += f"--mount type=bind,source=/jellyfin_media/media{i},target=/media{i} \\\n"
+                i += 1
         startup_script_file.write(startup_script)
         startup_script_file.close()
+
     print("Marking script as executable...")
     os.system(f"chmod +x /mnt/home/{username}/jellyfin_startup.sh")
     print("Script marked as executable.")
