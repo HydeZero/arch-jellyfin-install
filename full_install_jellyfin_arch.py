@@ -231,6 +231,7 @@ def install_arch():
         print("OK")
         print("    SWAP: ", end="")
         _ = os.system(f"swapon {disk_to_install}2")
+        print("OK")
         print("    BOOT: ", end="")
         _ = os.system(f"mount --mkdir {disk_to_install}1 /mnt/boot")
         print("OK")
