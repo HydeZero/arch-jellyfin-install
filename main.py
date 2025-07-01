@@ -248,8 +248,6 @@ def install_arch():
 
     if install_process.returncode != 0:
         print("CRITICAL ERROR: Something has gone wrong during the installation of the base system. The error code is:", install_process.returncode)
-        print("Debug details:")
-        print(err)
         print("I cannot continue with the installation. Sometimes this is because of a network error, so please check your connection and try again.")
         quit()
 
