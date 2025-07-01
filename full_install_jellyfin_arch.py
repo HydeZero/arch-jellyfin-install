@@ -52,6 +52,7 @@ def questions():
     global media_drives
     global time_zone
     global is_meshnet
+    global username
 
     os.system("clear")
     print("Doing some preliminary checks...")
@@ -213,7 +214,7 @@ def install_arch():
         print("    BOOT: ", end="")
         _ = os.system(f"mount --mkdir {disk_to_install}1 /mnt/boot")
         print("OK")
-    print("Initiating install of base system...")
+    print("Installing base system... this may take a while, so please be patient.")
     install_process = subprocess.run(["pacstrap", "-K", "/mnt", "base", "linux", "base-devel", "linux-firmware", "networkmanager", "wpa_supplicant"], capture_output=True)
 
     if install_process.returncode != 0:
@@ -269,9 +270,9 @@ def install_arch():
     subprocess.call(["arch-chroot", "/mnt", "passwd"])
     print("INSTALLING BOOTLOADER")
     print("    [1/2] Installing GRUB...")
-    subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "grub"])
+    subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "grub", "--noconfirm"])
     if is_efi:
-        subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "efibootmgr"])
+        subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "efibootmgr", "--noconfirm"])
         if efi_type == 64:
             subprocess.call(["arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB"])
         elif efi_type == 32:
@@ -288,19 +289,20 @@ def install_arch():
     subprocess.call(["arch-chroot", "/mnt", "useradd", "-m", "-G", "wheel", username])
     print(f"User account created. I can't make passwords for you, so you will have to do that yourself. I am running passwd {username}. Please make it different from the root password. If its the same, it pretty much negates the security benefits.")
     subprocess.call(["arch-chroot", "/mnt", "passwd", username])
-    print("ADDING USER TO DOCKER GROUP")
-    subprocess.call(["arch-chroot", "/mnt", "usermod", "-aG", "docker", username]) # Add user to docker group
-    # no need for visudo since docker group already is root equivalent
-    print("USER ADDED TO DOCKER GROUP")
     print("\nDONE INSTALLING ARCH LINUX BASE")
     time.sleep(5)
     os.system("clear")
     print("INSTALL PART 3/3: JELLYFIN\n")
     print("Installing Docker...")
-    subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "docker"])
+    subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "docker", "--noconfirm"])
     print("DOCKER INSTALLED")
+    print("ADDING USER TO DOCKER GROUP")
+    subprocess.call(["arch-chroot", "/mnt", "usermod", "-aG", "docker", username]) # Add user to docker group
+    # no need for visudo since docker group already is root equivalent
+    print("USER ADDED TO DOCKER GROUP")
     print("Enabling Docker service...")
     subprocess.call(["arch-chroot", "/mnt", "systemctl", "enable", "--now", "docker"])
+    subprocess.call(["arch-chroot", "/mnt", "systemctl", "start", "docker"])
     print("DOCKER SERVICE ENABLED")
     print("Installing Jellyfin...")
     subprocess.call(["arch-chroot", "/mnt", "docker", "pull", "jellyfin/jellyfin"])
@@ -320,18 +322,21 @@ def install_arch():
     print("Script added to bashrc.")
     print("DONE INSTALLING JELLYFIN")
     time.sleep(5)
+    os.system("clear")
     if is_meshnet:
+        print("INSTALLING NORDVPN MESHNET\n")
         print("Installing yay...")
         subprocess.call(["arch-chroot", "/mnt", "git", "clone", "https://aur.archlinux.org/yay.git"])
-        _ = os.system("arch-chroot /mnt pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si")
+        _ = os.system("arch-chroot /mnt pacman -S --needed git base-devel --noconfirm && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si")
         print("yay installed.")
         print("Installing NordVPN MeshNet...")
-        subprocess.call(["arch-chroot", "/mnt", "pacman", "-Syy", "nordvpn-bin"])
+        subprocess.call(["arch-chroot", "/mnt", "yay", "-S", "nordvpn-bin"])
         print("NordVPN MeshNet installed.")
         print("Enabling NordVPN service...")
         subprocess.call(["arch-chroot", "/mnt", "systemctl", "enable", "--now", "nordvpnd"])
+        subprocess.call(["arch-chroot", "/mnt", "usermod", "-aG", "nordvpn", username])
         print("NordVPN service enabled.")
-        print("Please run 'nordvpn login' to log in to your account and 'nordvpn meshnet on' to enable MeshNet. You can do this after the installation is complete.")
+        print("Please run 'nordvpn login' to log in to your account and 'nordvpn set meshnet on' to enable MeshNet. You can do this after the installation is complete.")
 
 welcome(10)
 init_install()
