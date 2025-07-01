@@ -339,7 +339,7 @@ def install_arch():
         first_startup_file.close()
     print("Python script created. Now, I will create a bash script that will run the container on boot.")
     with open(f"/mnt/home/{username}/jellyfin_startup.sh", "w") as startup_script_file:
-        if media_drives.len() == 0:
+        if len(media_drives) == 0:
             startup_script = startup_script.replace("\nLINEREPLACEHOLDER", "")
         else:
             line_replacement = ""
