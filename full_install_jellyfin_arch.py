@@ -101,7 +101,7 @@ def questions():
         if input("> ").lower() != "n":
             break
     print("Assuming locale is in UTF-8...")
-    time.sleep(5)
+    time.sleep(2)
     while True:
         os.system("clear")
         print("TIMEZONE\n")
@@ -214,11 +214,7 @@ def install_arch():
         _ = os.system(f"mount --mkdir {disk_to_install}1 /mnt/boot")
         print("OK")
     print("Initiating install of base system...")
-    install_process = subprocess.Popen(["pacstrap", "-K", "/mnt", "base", "linux", "base-devel", "linux-firmware", "networkmanager", "wpa_supplicant"], stdout=subprocess.PIPE, shell=True)
-
-    (output, err) = install_process.communicate()
-    
-    _ = install_process.wait()
+    install_process = subprocess.run(["pacstrap", "-K", "/mnt", "base", "linux", "base-devel", "linux-firmware", "networkmanager", "wpa_supplicant"], capture_output=True)
 
     if install_process.returncode != 0:
         print("CRITICAL ERROR: Something has gone wrong during the installation of the base system. The error code is:", install_process.returncode)
@@ -337,6 +333,6 @@ def install_arch():
         print("NordVPN service enabled.")
         print("Please run 'nordvpn login' to log in to your account and 'nordvpn meshnet on' to enable MeshNet. You can do this after the installation is complete.")
 
-welcome(2)
+welcome(10)
 init_install()
 questions()
