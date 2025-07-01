@@ -335,6 +335,9 @@ def install_arch():
     print("DOCKER SERVICE ENABLED")
     print("Since this entire script is dedicated to installing Arch Linux and Jellyfin, I will add a startup script to run the jellyfin container on boot.")
     print("Jellyfin won't be pulled until the first boot, so I will create a Python script that will pull the container and create the volumes.")
+    global startup_script
+    global python_first_startup
+
     with open(f"/mnt/home/{username}/jellyfin_first_startup.py", "w") as first_startup_file:
         first_startup_file.write(python_first_startup)
         first_startup_file.close()
